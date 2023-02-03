@@ -166,7 +166,6 @@ namespace JiraExport
                 new Dictionary<string, string>() {
                     { "Tool version :", toolVersion },
                     { "Start time   :", DateTime.Now.ToString() },
-                    { "Telemetry    :", Logger.TelemetryStatus },
                     { "Session id   :", Logger.SessionId },
                     { "Tool user    :", user },
                     { "Config       :", configFile },

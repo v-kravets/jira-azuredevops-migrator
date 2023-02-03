@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.ApplicationInsights.Extensibility;
 
 namespace Migration.Common.Log
 {
@@ -24,7 +21,6 @@ namespace Migration.Common.Log
         private static LogLevel _logLevel;
         private static List<string> _errors = new List<string>();
         private static List<string> _warnings = new List<string>();
-        private static TelemetryClient _telemetryClient = null;
         private static bool? _continueOnCritical;
 
         static Logger()
@@ -68,22 +64,11 @@ namespace Migration.Common.Log
         public static void EndSession(string message, Dictionary<string, string> properties)
         {
             LogEvent(message, properties);
-
-            if (_telemetryClient != null)
-                _telemetryClient.Flush();
         }
 
         private static void InitApplicationInsights()
         {
-            var key = ConfigurationManager.AppSettings["applicationInsightsKey"];
-
-            if (!string.IsNullOrEmpty(key) && Guid.TryParse(key, out Guid temp))
-            {
-                TelemetryConfiguration.Active.InstrumentationKey = key;
-                _telemetryClient = new TelemetryClient();
-                _telemetryClient.Context.Component.Version = VersionInfo.GetVersionInfo();
-                _telemetryClient.Context.Session.Id = SessionId;
-            }
+            
         }
 
         public static void Log(LogLevel level, string message)
@@ -139,20 +124,14 @@ namespace Migration.Common.Log
 
         private static void LogTrace(string message, LogLevel level)
         {
-            if (_telemetryClient != null)
-                _telemetryClient.TrackTrace(message, (SeverityLevel)level);
         }
 
         private static void LogEvent(string message, Dictionary<string, string> properties)
         {
-            if (_telemetryClient != null)
-                _telemetryClient.TrackEvent(message, properties);
         }
 
         private static void LogExceptionToApplicationInsights(Exception ex)
         {
-            if (_telemetryClient != null)
-                _telemetryClient.TrackException(ex);
         }
 
         private static void ToFile(LogLevel level, string message)
@@ -253,7 +232,5 @@ namespace Migration.Common.Log
         public static int Errors => _errors.Count;
 
         public static string SessionId { get; } = Guid.NewGuid().ToString();
-
-        public static string TelemetryStatus => _telemetryClient != null ? "Enabled" : "Disabled";
     }
 }
